@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "ejs": "^2.6.1",
+    "http-assert": "^1.4.0",
+    "jsonwebtoken": "^8.3.0",
+    "koa": "^2.6.1",
+    "koa-better-http-proxy": "^0.2.4",
+    "koa-body": "^4.0.4",
+    "koa-bodyparser": "^4.2.1",
+    "koa-jwt": "^3.5.1",
+    "koa-logger": "^3.2.0",
+    "koa-request": "^1.0.0",
+    "koa-router": "^7.4.0",
+    "koa-send": "^5.0.0",
+    "koa-static": "^5.0.0",
+    "koa-views": "^6.1.4",
+    "koa-views-render": "^0.0.1",
+    "mongoose": "^5.3.13",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "phantomjs": "^2.1.7+deprecated"
+  },
+  "scripts": {
+    "phantomjs": "node_modules/.bin/phantomjs"
+  }
+}
