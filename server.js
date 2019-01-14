@@ -12,14 +12,14 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 async function mongoStart() {
-    await mongoose.connect('mongodb://localhost:27017/crawler');
+    await mongoose.connect('mongodb://localhost:27017/wechatDemo');
 }
 mongoStart().then(() => {
-    require('./module/press')
-    require('./module/commodity')
-    require('./module/user')
-    require('./module/shoppingCart')
-    require('./module/order')
+    // require('./module/press')
+    // require('./module/commodity')
+    // require('./module/user')
+    // require('./module/shoppingCart')
+    // require('./module/order')
     const router = require('./router.js')
     app.use(bodyParser());
     app.use(static(
