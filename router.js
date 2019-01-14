@@ -10,5 +10,7 @@ let router = new KoaRouter();
 // 订单
 // router.use('/order', require('./router/order').routes())
 
+// wechatTEST
+router.use('/wechat',require('./router/wechat').routes())
 
 module.exports = router;
