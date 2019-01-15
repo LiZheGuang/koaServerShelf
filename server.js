@@ -7,19 +7,20 @@ const app = new Koa();
 const logger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
 const mongoose = require('mongoose');
+const wechat = require('co-wechat');
 
 
 mongoose.Promise = global.Promise;
 
 async function mongoStart() {
-    await mongoose.connect('mongodb://localhost:27017/wechatDemo');
+    // await mongoose.connect('mongodb://localhost:27017/wechatDemo');
 }
 mongoStart().then(() => {
     // require('./module/press')
     // require('./module/commodity')
     // require('./module/user')
     // require('./module/shoppingCart')
-    require('./module/accesstoken')
+    // require('./module/accesstoken')
     const router = require('./router.js')
     app.use(bodyParser());
     app.use(static(
@@ -29,6 +30,8 @@ mongoStart().then(() => {
         console.log(str)
     }))
     app.use(bodyParser())
+
+ 
     // 错误处理
     app.use(function (ctx, next) {
         return next().catch((err) => {
@@ -44,6 +47,8 @@ mongoStart().then(() => {
         });
     });
 
+      
+     
     app.use(router.routes()).use(router.allowedMethods());
 }).then(() => {
     app.listen(3000)

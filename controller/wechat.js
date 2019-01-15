@@ -3,9 +3,9 @@ const config = require('../staticConfigs')
 const xml2js = require('xml2js');
 const axios = require('axios')
 
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 
-const accesstoken = mongoose.model('accesstoken')
+// const accesstoken = mongoose.model('accesstoken')
 
 // xml2js中间件
 module.exports.xml2js = async (ctx, next) => {
