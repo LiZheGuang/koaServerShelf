@@ -1,22 +1,29 @@
 const crypto = require('crypto') //引入加密模块
 const config = require('../staticConfigs')
 const xml2js = require('xml2js');
+const axios = require('axios')
 
-// 创建
-module.exports.xml2js = async (ctx, next) => { 
+const mongoose = require('mongoose');
+
+const accesstoken = mongoose.model('accesstoken')
+
+// xml2js中间件
+module.exports.xml2js = async (ctx, next) => {
     console.log('中间件')
     ctx.req.on('data', (chunk) => {
         // buf += chunk
         const parseString = xml2js.parseString
-        parseString(chunk,(err,res)=>{
+        parseString(chunk, (err, res) => {
             console.log(res)
+            ctx.wecahtXmla = res
         })
     })
     ctx.req.on('end', () => {
-       console.log('end')
-       next()
+        console.log('end')
+        next()
     })
 }
+// xml2jsz转成json
 module.exports.xmlToJson = () => {
     return new Promise((resolve, reject) => {
         const parseString = xml2js.parseString
@@ -29,9 +36,7 @@ module.exports.xmlToJson = () => {
         })
     })
 }
-
-
-
+// 接入微信公众公开发
 module.exports.setting = async (query) => {
     var signature = query.signature,//微信加密签名
         timestamp = query.timestamp,//时间戳
@@ -54,3 +59,41 @@ module.exports.setting = async (query) => {
         return 'mismatch'
     }
 }
+
+module.exports.accessToken = async () => {
+    const tokenJson = await wechatClass.wechatToken()
+    return tokenJson
+}
+
+
+// 17_beU-5alLhBDZAxX-T_13WSZjwAKEH2BRCA7P1ED9p7ASkSVH92DGWLGlSC2uFyD-Uiou5XOtDMbue2RqvphcbtRXagWg4Mh3NLK0n-4vnSixa6nPO1Sha5UtVLms-tY0PtRsv59vZFDVQNvkPBDiACAIUW
+
+class axiosHttp {
+    async wechatToken() {
+        let wechatToken = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.wecaht.appid}&secret=${config.wecaht.secret}`
+        return new Promise((resove, reject) => {
+            axios.get(wechatToken).then((res) => {
+                resove(res.data)
+                if (res.data.access_token) {
+                    setInterval(() => {
+                        this.access_token(res.data.access_token,res.data.expires_in)
+                    }, res.data.expires_in * 1000);
+                }
+            }).catch((err) => {
+                reject(err)
+            })
+        })
+    }
+    async uptoken(access_token,expires_in){
+        accesstoken.findOneAndUpdate({ accessName: "accesstoken" }, {
+            $set: {
+                access_token: access_token,
+                expires_in: 3500,
+            }
+        }, { upsert: true })
+    }
+}
+
+
+
+const wechatClass = new axiosHttp()

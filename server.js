@@ -19,7 +19,7 @@ mongoStart().then(() => {
     // require('./module/commodity')
     // require('./module/user')
     // require('./module/shoppingCart')
-    // require('./module/order')
+    require('./module/accesstoken')
     const router = require('./router.js')
     app.use(bodyParser());
     app.use(static(
