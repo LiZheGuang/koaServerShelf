@@ -92,6 +92,7 @@ module.exports.findToken = async () => {
     let tokenRes = await accesstoken.findOne({accessName:"accesstoken"})
     return tokenRes.access_token
 }
+
 class axiosHttp {
     async wechatToken() {
         let wechatToken = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.wecaht.appid}&secret=${config.wecaht.secret}`

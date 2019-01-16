@@ -1,7 +1,9 @@
 const KoaRouter = require('koa-router');
 const wechat = require('../controller/wechat')
+const authone = require('../controller/authon.js')
 
 let router = new KoaRouter();
+
 
 router.get('/setting', async (ctx, next) => {
     let query = ctx.request.query
@@ -10,7 +12,7 @@ router.get('/setting', async (ctx, next) => {
 })
 
 router.post('/setting', async (ctx, next) => {
-    await wechat.msgResponse(ctx,next)
+    await wechat.msgResponse(ctx, next)
 })
 
 router.get('/accessToken', async (ctx, next) => {
@@ -19,6 +21,10 @@ router.get('/accessToken', async (ctx, next) => {
 })
 router.post('/createButton', async (ctx, next) => {
     ctx.body = await wechat.createButton()
+})
+
+router.get('/codeGetToken', async (ctx, next) => {
+    ctx.body = await authone.authonUserInfo(ctx.request.query)
 })
 
 module.exports = router;
