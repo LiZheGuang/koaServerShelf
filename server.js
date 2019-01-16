@@ -7,20 +7,17 @@ const app = new Koa();
 const logger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
 const mongoose = require('mongoose');
-const wechat = require('co-wechat');
-
-
 mongoose.Promise = global.Promise;
 
 async function mongoStart() {
-    // await mongoose.connect('mongodb://localhost:27017/wechatDemo');
+    await mongoose.connect('mongodb://localhost:27017/wechatDemo');
 }
 mongoStart().then(() => {
     // require('./module/press')
     // require('./module/commodity')
     // require('./module/user')
     // require('./module/shoppingCart')
-    // require('./module/accesstoken')
+    require('./module/accesstoken')
     const router = require('./router.js')
     app.use(bodyParser());
     app.use(static(

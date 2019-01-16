@@ -1,69 +1,28 @@
 const crypto = require('crypto') //引入加密模块
 const config = require('../staticConfigs')
-const xml2js = require('xml2js');
+const getRawBody = require('raw-body');
 const axios = require('axios')
-
-// const mongoose = require('mongoose');
-
-// const accesstoken = mongoose.model('accesstoken')
-
+const msgWechat = require('../lib/xmlClass')
+const mongoose = require('mongoose');
+const accesstoken = mongoose.model('accesstoken')
 // xml2js中间件
-module.exports.xml2js = async (ctx, next) => {
+module.exports.msgResponse = async (ctx, next) => {
+    // 取原始数据
+    let xml = await getRawBody(ctx.req, {
+        length: ctx.request.length,
+        limit: '1mb',
+        encoding: ctx.request.charset || 'utf-8'
+    });
 
-    let buffer = [];
-    let that = this
-
-    ctx.req.on('data', (chunk) => {
-
-        buffer.push(chunk);
-
-        const parseString = xml2js.parseString
-        parseString(chunk, (err, res) => {
-            console.log(res)
-            ctx.wecahtXmla = res
-            buf = res
-        })
-    })
-    ctx.req.on('end', () => {
-        console.log('end')
-
-        var msgXml = Buffer.concat(buffer).toString('utf-8');
-
-        const parseString = xml2js.parseString
-
-        //解析xml
-        parseString(msgXml, { explicitArray: false }, function (err, result) {
-            if (!err) {
-                result = result.xml;
-                var toUser = result.ToUserName; //接收方微信
-                var fromUser = result.FromUserName;//发送仿微信
-                console.log(that.txtMsg(fromUser, toUser, '欢迎关注 hvkcoder 公众号，一起斗图吧'))
-                ctx.body = that.txtMsg(fromUser, toUser, '欢迎关注 hvkcoder 公众号，一起斗图吧')
-
-                //判断事件类型
-                // switch (result.Event.toLowerCase()) {
-                //     case 'subscribe':
-                //         //回复消息
-                //         break;
-                // }
-            }
-        })
-        // 
-        // next()
-    })
-}
-// xml2jsz转成json
-module.exports.xmlToJson = () => {
-    return new Promise((resolve, reject) => {
-        const parseString = xml2js.parseString
-        parseString(str, (err, result) => {
-            if (err) {
-                reject(err)
-            } else {
-                resolve(result)
-            }
-        })
-    })
+    // 保存原始xml
+    ctx.weixin_xml = xml;
+    let result = await msgWechat.parseXML(xml);
+    var formatted = msgWechat.formatMessage(result.xml);
+    let body = '我是自动回复功能，你回复我什么我都会只回复你这句话'
+    var replyMessageXml = msgWechat.reply(body, formatted.ToUserName, formatted.FromUserName);
+    ctx.replyMessageXml = replyMessageXml
+    ctx.body = replyMessageXml
+    ctx.type = 'application/xml';
 }
 // 接入微信公众公开发
 module.exports.setting = async (query) => {
@@ -92,8 +51,10 @@ module.exports.accessToken = async () => {
     const tokenJson = await wechatClass.wechatToken()
     return tokenJson
 }
+// 创建公众平台底部按钮
 module.exports.createButton = async () => {
-    let createButtonApi = 'https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN'
+    let token = await this.findToken()
+    let createButtonApi = 'https://api.weixin.qq.com/cgi-bin/menu/create?access_token=' + token
     let btnJson = {
         "button": [
             {
@@ -127,24 +88,21 @@ module.exports.createButton = async () => {
     return postRes.data
 }
 
-// 回复消息
-module.exports.txtMsg = (toUser, fromUser, content) => {
-    var xmlContent = `<xml><ToUserName><![CDATA[${toUser}]]></ToUserName><FromUserName><![CDATA[${fromUser}]]></FromUserName><CreateTime>${new Date().getTime()}</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[${content}]]></Content></xml>`
-    return xmlContent;
+module.exports.findToken = async () => {
+    let tokenRes = await accesstoken.findOne({accessName:"accesstoken"})
+    return tokenRes.access_token
 }
-
-
-// 17_beU-5alLhBDZAxX-T_13WSZjwAKEH2BRCA7P1ED9p7ASkSVH92DGWLGlSC2uFyD-Uiou5XOtDMbue2RqvphcbtRXagWg4Mh3NLK0n-4vnSixa6nPO1Sha5UtVLms-tY0PtRsv59vZFDVQNvkPBDiACAIUW
-
 class axiosHttp {
     async wechatToken() {
         let wechatToken = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.wecaht.appid}&secret=${config.wecaht.secret}`
         return new Promise((resove, reject) => {
+
             axios.get(wechatToken).then((res) => {
                 resove(res.data)
                 if (res.data.access_token) {
+                    this.uptoken(res.data.access_token, res.data.expires_in)
                     setInterval(() => {
-                        this.access_token(res.data.access_token, res.data.expires_in)
+                        this.wechatToken()
                     }, res.data.expires_in * 1000);
                 }
             }).catch((err) => {
@@ -153,12 +111,14 @@ class axiosHttp {
         })
     }
     async uptoken(access_token, expires_in) {
-        accesstoken.findOneAndUpdate({ accessName: "accesstoken" }, {
+
+        await accesstoken.updateOne({ accessName: "accesstoken" }, {
             $set: {
                 access_token: access_token,
-                expires_in: 3500,
+                expires_in: expires_in,
             }
         }, { upsert: true })
+        // console.log(res)
     }
 }
 

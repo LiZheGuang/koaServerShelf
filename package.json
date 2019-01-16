@@ -17,6 +17,7 @@
     "koa-views": "^6.1.4",
     "koa-views-render": "^0.0.1",
     "mongoose": "^5.3.13",
+    "raw-body": "^2.3.3",
     "request": "^2.88.0",
     "xml2js": "^0.4.19"
   },
